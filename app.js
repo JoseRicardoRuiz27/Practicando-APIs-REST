@@ -1,10 +1,10 @@
-const express = require('express')
-const crypto = require('node:crypto')
-const movies = require(`./movies.json`)
-const { validateMovie, validatePartialMovie } = require('./schema')
+import express, { json } from 'express'
+import { randomUUID } from 'node:crypto'
+import movies from `./movies.json` with {type : `json`}
+import { validateMovie, validatePartialMovie } from './schema.js'
 
 const app = express()
-app.use(app.use(express.json()))
+app.use(app.use(json()))
 app.get(`/`, (req, res) => {
     res.json({message: "Hola node"})
 })
@@ -49,7 +49,7 @@ app.post(`/movies`, (req, res) => {
     }
 
     const newMovie = {
-        id: crypto.randomUUID(),
+        id: randomUUID(),
         ...resultado.date
     }
     movies.push(newMovie)
