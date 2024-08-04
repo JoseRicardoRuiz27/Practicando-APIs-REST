@@ -9,7 +9,20 @@ app.get(`/`, (req, res) => {
     res.json({message: "Hola node"})
 })
 
+//CORS metodos normales = GET/HEAD/POST
+//CORS metodos complejos = PUT/PATCH/DELETE -->CORS PRE-Flight -->OPTIONS
+
+const ACCEPTED_ORIGINS = [
+    `http://localhost:3000`,
+    `http://localhost:3001`,
+    `http://movies.com`,
+]
+
 app.get(`/movies`, (req, res) => {
+    const origin = req.header(`origin`)
+    if(ACCEPTED_ORIGINS.includes(origin) || !origin){
+        res.header(`Access-Control-Allow-Origin`, origin)
+    }
     const {genre} = req.query
     if(genre){
         const filtroGenre = movies.filter(
@@ -43,6 +56,18 @@ app.post(`/movies`, (req, res) => {
     res.status(201).json(newMovie)
 })
 
+app.delete(`/movies/:id`, (req, res) => {
+    const {id} = req.params
+    const movieIndex = movies.findIndex(movie => movie.id === id)
+
+    if(movieIndex === -1){
+        return res.status(400).json({message: `Not foun`})
+    }
+
+    movies.splice(movieIndex, 1)
+    res.json({message: `Movie Delete`})    
+})
+
 app.patch(`/movies/:id`, (req, res) => {
 
     const result = validatePartialMovie(req.body)
@@ -51,7 +76,7 @@ app.patch(`/movies/:id`, (req, res) => {
         return res.status(400).json({error: JSON.parse(result.error.message)})
     }
     const {id} = req.params
-    const movieIndex = movies.findIndex(movie => movie.id = id)
+    const movieIndex = movies.findIndex(movie => movie.id === id)
     if(movieIndex === -1) {
         return res.status(404).json({message: `Movie Not Found`})
     }
@@ -63,6 +88,15 @@ app.patch(`/movies/:id`, (req, res) => {
     movies[movieIndex] = updateMovie
 
     return res.json(updateMovie)
+})
+
+app.options(`/movies/:id`, (req,res) => {
+    const origin = req.header(`origin`)
+    if(ACCEPTED_ORIGINS.includes(origin) || !origin){
+        res.header(`Access-Control-Allow-Origin`, origin)
+        res.header(`Access-Control-Allow-Methods`, `GET, POST, PUT, PATCH, DELETE`)
+    }
+    res.send(200)
 })
 
 const PORT = process.env.PORT ?? 3001
